@@ -57,7 +57,6 @@ require CORE_PATH . 'config' . DS . 'bootstrap.php';
 
 use Cake\Cache\Cache;
 use Cake\Console\ConsoleErrorHandler;
-use Cake\Core\App;
 use Cake\Core\Configure;
 use Cake\Core\Configure\Engine\PhpConfig;
 use Cake\Core\Plugin;
@@ -67,9 +66,8 @@ use Cake\Error\ErrorHandler;
 use Cake\Log\Log;
 use Cake\Mailer\Email;
 use Cake\Network\Request;
-use Cake\Utility\Inflector;
 use Cake\Utility\Security;
-use App\Mailer\Transport\DebugSmtpTransport;
+use Passbolt\WebInstaller\Middleware\WebInstallerMiddleware;
 
 /*
  * Read configuration file and inject configuration into various
@@ -93,6 +91,11 @@ try {
         exit($e->getMessage() . "\n");
     }
 }
+
+/*
+ * Define if passbolt is configured.
+ */
+define('PASSBOLT_IS_CONFIGURED', WebInstallerMiddleware::isConfigured());
 
 /*
  * Load an environment local configuration file.
@@ -160,20 +163,6 @@ if (!Configure::read('App.fullBaseUrl')) {
         Configure::write('App.fullBaseUrl', 'http' . $s . '://' . $httpHost);
     }
     unset($httpHost, $s);
-}
-
-// Define constant PASSBOLT_IS_CONFIGURED based on database configuration status.
-if (defined('TEST_IS_RUNNING') && TEST_IS_RUNNING) {
-    define('PASSBOLT_IS_CONFIGURED', 1);
-} elseif (Configure::read('Datasources.default')) {
-    if (empty(Configure::read('Datasources.default.username'))
-        && empty(Configure::read('Datasources.default.password'))
-        && empty(Configure::read('Datasources.default.database'))
-    ) {
-        define('PASSBOLT_IS_CONFIGURED', 0);
-    } else {
-        define('PASSBOLT_IS_CONFIGURED', 1);
-    }
 }
 
 Cache::setConfig(Configure::consume('Cache'));

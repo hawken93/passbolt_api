@@ -71,10 +71,6 @@ class WebInstallerController extends Controller
         $config = $session->read(self::CONFIG_KEY);
 
         if ($config === null) {
-            if (PASSBOLT_IS_CONFIGURED) {
-                throw new ForbiddenException(__('The web installer cannot be used since this instance of passbolt is already configured.'));
-            }
-
             $session->write(self::CONFIG_KEY, []);
 
             // Redirect to start page if not already there.
