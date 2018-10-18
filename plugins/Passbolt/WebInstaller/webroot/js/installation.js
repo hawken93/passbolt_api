@@ -47,17 +47,20 @@ $(function () {
   function handleInstallSuccess(response) {
     const bases = document.getElementsByTagName('base');
     const baseUrl = bases[0] ? bases[0].href : '/';
-    const setupUrl = `${baseUrl}setup/install/${response.token.user_id}/${response.token.token}`;
+    let redirectUrl = baseUrl;
+    if (response.token) {
+      redirectUrl = `${baseUrl}setup/install/${response.token.user_id}/${response.token.token}`;
+    }
 
     $('li.selected').removeClass('selected');
     $('li.disabled').removeClass('disabled').addClass('selected');
     $('#js_step_title').text('You\'ve made it!');
     $('#js-install-installing').hide();
     $('#js-install-complete').show();
-    $('#js-install-complete-redirect').attr('href', setupUrl);
+    $('#js-install-complete-redirect').attr('href', redirectUrl);
 
     setTimeout(function () {
-      document.location.href = setupUrl;
+      document.location.href = redirectUrl;
     }, 5000);
   }
 

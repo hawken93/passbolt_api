@@ -76,8 +76,7 @@ class DatabaseController extends WebInstallerController
             }
 
             // Save in session whether the database has existing admins.
-//            $this->request->getSession()->write(self::CONFIG_KEY . '.hasExistingAdmin', $nbAdmins > 0 ? true : false);
-            $this->request->getSession()->write(self::CONFIG_KEY . '.hasExistingAdmin', false);
+            $this->request->getSession()->write(self::CONFIG_KEY . '.hasExistingAdmin', $nbAdmins > 0 ? true : false);
 
             $this->_saveConfiguration(self::MY_CONFIG_KEY, $data);
 

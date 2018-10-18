@@ -95,8 +95,9 @@ try {
 /*
  * Define if passbolt is configured.
  */
-define('PASSBOLT_IS_CONFIGURED', WebInstallerMiddleware::isConfigured());
-//define('PASSBOLT_IS_CONFIGURED', false);
+if (!defined('TEST_IS_RUNNING')) {
+    define('PASSBOLT_IS_CONFIGURED', WebInstallerMiddleware::isConfigured());
+}
 
 /*
  * Load an environment local configuration file.

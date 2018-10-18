@@ -45,7 +45,6 @@ class InstallationController extends WebInstallerController
      */
     public function index()
     {
-        $this->set('redirectUrl', $this->stepInfo['redirectUrl']);
         $user = $this->_getSavedConfiguration(AccountCreationController::MY_CONFIG_KEY);
         $this->set('firstUserCreated', !empty($user));
         $this->render('Pages/installation');
@@ -64,16 +63,18 @@ class InstallationController extends WebInstallerController
     public function install()
     {
         $this->_writeConfigurationFile();
-        $this->_installDb();
+        $this->_installDatabase();
         $this->_writeLicenseFile();
 
         // The model should be loaded after the db is installed and the datasource config is loaded.
         $this->loadModel('Users');
         $user = $this->_createFirstUser();
-        $token = $this->_createFirstUserRegistrationToken($user);
+        if ($user) {
+            $token = $this->_createFirstUserRegistrationToken($user);
+            $this->set('data', ['user' => $user, 'token' => $token]);
+        }
 
         $this->viewBuilder()->setLayout('ajax');
-        $this->set('data', ['user' => $user, 'token' => $token]);
         return $this->render('Pages/installation_result');
     }
 
@@ -152,9 +153,8 @@ class InstallationController extends WebInstallerController
      * @throws Exception The database cannot be installed
      * @return mixed
      */
-    protected function _installDb()
+    protected function _installDatabase()
     {
-        unlink(CONFIG . 'passbolt.php'); // @todo remove debug
         ConnectionManager::drop('default');
         $dbConfig = DatabaseConnection::buildConfig(Configure::read('Datasources.default'));
         ConnectionManager::setConfig('default', $dbConfig);
@@ -174,7 +174,7 @@ class InstallationController extends WebInstallerController
     {
         $userData = $this->_getSavedConfiguration(AccountCreationController::MY_CONFIG_KEY);
         if (empty($userData)) {
-            return;
+            return null;
         }
 
         $userData['deleted'] = false;

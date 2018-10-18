@@ -1,1 +1,1 @@
-<?= json_encode($data) ?>
+<?= isset($data) ? json_encode($data) : '{}' ?>
