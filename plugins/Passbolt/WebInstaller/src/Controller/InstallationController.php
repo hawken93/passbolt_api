@@ -14,8 +14,15 @@
  */
 namespace Passbolt\WebInstaller\Controller;
 
+use App\Error\Exception\CustomValidationException;
+use App\Model\Entity\AuthenticationToken;
+use App\Model\Entity\Role;
+use App\Model\Entity\User;
 use Cake\Core\Configure;
+use Cake\Core\Exception\Exception;
+use Cake\Datasource\ConnectionManager;
 use Migrations\Migrations;
+use Passbolt\WebInstaller\Utility\DatabaseConnection;
 
 class InstallationController extends WebInstallerController
 {
@@ -28,8 +35,6 @@ class InstallationController extends WebInstallerController
     {
         parent::initialize();
         $this->stepInfo['previous'] = 'install/options';
-        $this->stepInfo['next_create_user'] = 'install/account_creation';
-        $this->stepInfo['next_complete'] = 'install/complete';
         $this->stepInfo['template'] = 'Pages/email';
         $this->stepInfo['install'] = 'install/installation/do_install';
     }
@@ -40,64 +45,36 @@ class InstallationController extends WebInstallerController
      */
     public function index()
     {
-        $this->_writeConfigurationFile();
-        $this->_writeLicenseFile();
-        $this->set(['redirectUrl' => $this->_getNextStepUrl()]);
+        $this->set('redirectUrl', $this->stepInfo['redirectUrl']);
+        $user = $this->_getSavedConfiguration(AccountCreationController::MY_CONFIG_KEY);
+        $this->set('firstUserCreated', !empty($user));
         $this->render('Pages/installation');
     }
 
     /**
-     * Get next step url.
-     * @return mixed
-     */
-    protected function _getNextStepUrl()
-    {
-        $session = $this->request->getSession();
-        $hasExistingAdmin = $session->read(self::CONFIG_KEY . '.hasExistingAdmin');
-        if (!$hasExistingAdmin) {
-            return $this->stepInfo['next_create_user'];
-        }
-
-        return $this->stepInfo['next_complete'];
-    }
-
-    /**
-     * Install passbolt database.
-     * This function will be called through ajax.
-     * Displays 1 or 0 depending on the installation result.
+     * Install passbolt :
+     * - write config/passbolt.php
+     * - create the database tables
+     * - write config/license
+     * - create first user
+     * - create first user registration token
+     *
      * @return void
      */
     public function install()
     {
-        $res = $this->_installDb();
-        $this->set(['installResult' => $res ? '1' : '0']);
+        $this->_writeConfigurationFile();
+        $this->_installDb();
+        $this->_writeLicenseFile();
 
-        $this->viewBuilder()
-            ->setLayout('ajax');
+        // The model should be loaded after the db is installed and the datasource config is loaded.
+        $this->loadModel('Users');
+        $user = $this->_createFirstUser();
+        $token = $this->_createFirstUserRegistrationToken($user);
 
-        $this->render('Pages/installation_result');
-    }
-
-    /**
-     * Complete installation
-     * @return void
-     */
-    public function complete()
-    {
-        $session = $this->request->getSession();
-        $hasExistingAdmin = $session->read(self::CONFIG_KEY . '.hasExistingAdmin');
-        if (!$hasExistingAdmin) {
-            $session = $this->request->getSession();
-            $token = $session->read(self::CONFIG_KEY . '.user.token');
-            $this->set(['redirectUrl' => 'setup/install/' . $token['user_id'] . '/' . $token['token']]);
-        } else {
-            $this->set(['redirectUrl' => '/']);
-        }
-
-        // Delete session info.
-        $session->delete(self::CONFIG_KEY);
-
-        $this->render('Pages/complete');
+        $this->viewBuilder()->setLayout('ajax');
+        $this->set('data', ['user' => $user, 'token' => $token]);
+        return $this->render('Pages/installation_result');
     }
 
     /**
@@ -123,6 +100,7 @@ class InstallationController extends WebInstallerController
         $contents = $configView->render('/Config/passbolt', 'ajax');
         $contents = "<?php\n$contents";
         file_put_contents(CONFIG . 'passbolt.php', $contents);
+        Configure::load('passbolt', 'default', true);
     }
 
     /**
@@ -171,13 +149,61 @@ class InstallationController extends WebInstallerController
 
     /**
      * Install database.
+     * @throws Exception The database cannot be installed
      * @return mixed
      */
     protected function _installDb()
     {
+        unlink(CONFIG . 'passbolt.php'); // @todo remove debug
+        ConnectionManager::drop('default');
+        $dbConfig = DatabaseConnection::buildConfig(Configure::read('Datasources.default'));
+        ConnectionManager::setConfig('default', $dbConfig);
         $migrations = new Migrations();
         $migrated = $migrations->migrate();
-
-        return $migrated;
+        if (!$migrated) {
+            throw new Exception('The database cannot be installed');
+        }
     }
+
+    /**
+     * Create the first user.
+     * @throws CustomValidationException There was a problem creating the first user
+     * @return User
+     */
+    protected function _createFirstUser()
+    {
+        $userData = $this->_getSavedConfiguration(AccountCreationController::MY_CONFIG_KEY);
+        if (empty($userData)) {
+            return;
+        }
+
+        $userData['deleted'] = false;
+        $userData['role_id'] = $this->Users->Roles->getIdByName(Role::ADMIN);
+        $user = $this->Users->buildEntity($userData);
+        $this->Users->save($user, ['checkRules' => true, 'atomic' => false]);
+        $errors = $user->getErrors();
+        if (!empty($errors)) {
+            throw new CustomValidationException('There was a problem creating the first user', $errors, $this->Users);
+        }
+
+        return $user;
+    }
+
+    /**
+     * Create the registration token for the first user.
+     * @param User $user The user to create the registration token for
+     * @throws CustomValidationException There was a problem creating the registration token
+     * @return AuthenticationToken
+     */
+    protected function _createFirstUserRegistrationToken(User $user)
+    {
+        $token = $this->Users->AuthenticationTokens->generate($user->id, AuthenticationToken::TYPE_REGISTER);
+        $errors = $token->getErrors();
+        if (!empty($errors)) {
+            throw new CustomValidationException('There was a problem creating the registration token', $errors, $this->Users->AuthenticationTokens);
+        }
+
+        return $token;
+    }
+
 }

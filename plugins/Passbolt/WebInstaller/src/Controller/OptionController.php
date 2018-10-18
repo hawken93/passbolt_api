@@ -29,9 +29,12 @@ class OptionController extends WebInstallerController
     public function initialize()
     {
         parent::initialize();
+        $session = $this->request->getSession();
+        $hasExistingAdmin = $session->read(self::CONFIG_KEY . '.hasExistingAdmin');
+
         $this->stepInfo['previous'] = 'install/email';
-        $this->stepInfo['next'] = 'install/installation';
         $this->stepInfo['template'] = 'Pages/options';
+        $this->stepInfo['next'] = $hasExistingAdmin ? 'install/installation' : 'install/account_creation';
     }
 
     /**

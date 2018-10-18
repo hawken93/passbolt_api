@@ -1,1 +1,1 @@
-<?= $installResult ?>
+<?= json_encode($data) ?>

@@ -16,7 +16,9 @@ namespace Passbolt\WebInstaller\Controller;
 
 use Cake\Core\Configure;
 use Cake\Core\Exception\Exception;
+use Cake\Datasource\ConnectionManager;
 use Passbolt\WebInstaller\Form\DatabaseConfigurationForm;
+use Passbolt\WebInstaller\Utility\DatabaseConnection;
 
 class DatabaseController extends WebInstallerController
 {
@@ -58,7 +60,9 @@ class DatabaseController extends WebInstallerController
             }
 
             try {
-                $this->databaseConfigurationForm->testConnection($data);
+                $dbConfig = DatabaseConnection::buildConfig($data);
+                ConnectionManager::setConfig(self::CONNECTION_NAME, $dbConfig);
+                DatabaseConnection::testConnection(self::CONNECTION_NAME);
             } catch (Exception $e) {
                 return $this->_error($e->getMessage());
             }
@@ -66,13 +70,14 @@ class DatabaseController extends WebInstallerController
             // Depending on the database content, check if this is a new passbolt instance,
             // or if we are reconfiguring an existing one (there already tables and  users in the db).
             try {
-                $nbAdmins = $this->databaseConfigurationForm->checkDbHasAdmin($data);
+                $nbAdmins = DatabaseConnection::checkDbHasAdmin(self::CONNECTION_NAME);
             } catch (Exception $e) {
                 return $this->_error($e->getMessage());
             }
 
             // Save in session whether the database has existing admins.
-            $this->request->getSession()->write(self::CONFIG_KEY . '.hasExistingAdmin', $nbAdmins > 0 ? true : false);
+//            $this->request->getSession()->write(self::CONFIG_KEY . '.hasExistingAdmin', $nbAdmins > 0 ? true : false);
+            $this->request->getSession()->write(self::CONFIG_KEY . '.hasExistingAdmin', false);
 
             $this->_saveConfiguration(self::MY_CONFIG_KEY, $data);
 
@@ -80,7 +85,6 @@ class DatabaseController extends WebInstallerController
         }
 
         $this->_loadSavedConfiguration(self::MY_CONFIG_KEY);
-
         $this->render($this->stepInfo['template']);
     }
 

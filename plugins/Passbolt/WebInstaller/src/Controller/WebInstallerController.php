@@ -14,6 +14,7 @@
  */
 namespace Passbolt\WebInstaller\Controller;
 
+use App\Controller\AppController;
 use Cake\Controller\Controller;
 use Cake\Core\Configure;
 use Cake\Event\Event;
@@ -34,6 +35,11 @@ class WebInstallerController extends Controller
      * This is where the temporary config information will be stored in the session.
      */
     const CONFIG_KEY = 'Passbolt.Config';
+
+    /**
+     * The database connection name used by the webinstaller
+     */
+    const CONNECTION_NAME = 'webinstaller';
 
     /**
      * Step information. Will be set by each controller.
@@ -114,10 +120,10 @@ class WebInstallerController extends Controller
         $sections['server_keys'] = __('Server keys');
         $sections['emails'] = __('Emails');
         $sections['options'] = __('Options');
-        $sections['installation'] = __('Installation');
         if (!$hasAdmin) {
             $sections['first_user'] = __('First user');
         }
+        $sections['installation'] = __('Installation');
         $sections['end'] = __('That\'s it!');
 
         return $sections;
@@ -136,16 +142,26 @@ class WebInstallerController extends Controller
     }
 
     /**
+     * Get session saved configuration for the corresponding key.
+     * @param string $key configuration key
+     * @return mixed
+     */
+    protected function _getSavedConfiguration($key)
+    {
+        $session = $this->request->getSession();
+        return $session->read(self::CONFIG_KEY . '.' . $key);
+    }
+
+    /**
      * Load a previously saved configuration. (in session).
      * @param string $key configuration key
      * @return void
      */
     protected function _loadSavedConfiguration($key)
     {
-        $session = $this->request->getSession();
-        $savedConfiguration = $this->request->getSession()->read(self::CONFIG_KEY . '.' . $key);
+        $savedConfiguration = $this->_getSavedConfiguration($key);
         if (!empty($savedConfiguration)) {
-            $this->request->data = $this->request->getSession()->read(self::CONFIG_KEY . '.' . $key);
+            $this->request->data = $savedConfiguration;
         }
     }
 

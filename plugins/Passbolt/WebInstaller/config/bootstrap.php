@@ -13,12 +13,10 @@
  * @since         2.5.0
  */
 use Cake\Core\Configure;
-use \Cake\Core\Plugin;
 use Cake\Event\EventManager;
 use Passbolt\WebInstaller\Middleware\WebInstallerMiddleware;
 
 Configure::load('Passbolt/WebInstaller.config', 'default', true);
-Plugin::routes('Passbolt/WebInstaller');
 
 EventManager::instance()->on(
     'Server.buildMiddleware',
