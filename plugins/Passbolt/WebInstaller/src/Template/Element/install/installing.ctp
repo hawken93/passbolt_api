@@ -8,8 +8,6 @@
             </div>
 
             <p class="install-details">Installing database</p>
-            <input type="hidden" name="install" id="install-url" value="<?= Router::url($stepInfo['install'], true) ?>">
-            <input type="hidden" name="redirect" id="redirect-url" value="<?= Router::url($redirectUrl, true) ?>">
         </div>
         <div class="col5 last">
         </div>

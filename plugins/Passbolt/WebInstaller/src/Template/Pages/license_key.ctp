@@ -10,7 +10,7 @@ $this->Html->script('Passbolt/WebInstaller.key_chooser', ['block' => 'scriptBott
         <?= $this->element('navigation', ['selectedSection' => 'license_key']) ?>
     </div>
     <!-- main -->
-    <?= $this->Form->create($licenseKeyForm); ?>
+    <?= $this->Form->create($formExecuteResult); ?>
     <div class="panel middle">
         <div class="grid grid-responsive-12">
             <div class="row">

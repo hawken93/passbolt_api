@@ -56,6 +56,7 @@ class LicenseKeyController extends WebInstallerController
             return $this->_saveLicense($data['license_key']);
         }
 
+        $this->set('formExecuteResult', null);
         $this->render($this->stepInfo['template']);
     }
 
@@ -75,6 +76,6 @@ class LicenseKeyController extends WebInstallerController
         $session = $this->request->getSession();
         $session->write('Passbolt.License', $licenseStr);
 
-        return $this->_success();
+        return $this->goToNextStep();
     }
 }

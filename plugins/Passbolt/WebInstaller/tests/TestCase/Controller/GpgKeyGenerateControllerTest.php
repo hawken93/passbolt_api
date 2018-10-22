@@ -18,33 +18,46 @@ use App\Utility\Healthchecks;
 use Cake\Core\Configure;
 use Passbolt\WebInstaller\Test\Lib\WebInstallerIntegrationTestCase;
 
-class SystemCheckControllerTest extends WebInstallerIntegrationTestCase
+class GpgKeyGenerateControllerTest extends WebInstallerIntegrationTestCase
 {
     public function setUp()
     {
         parent::setUp();
         $this->mockPassboltIsNotconfigured();
+        $this->initWebInstallerSession();
     }
 
     public function testViewSuccess()
     {
-        $this->get('/install');
+        $this->get('/install/gpg_key');
         $data = ($this->_getBodyAsString());
         $this->assertResponseOk();
-        $this->assertContains('2. Database', $data);
-        $this->assertContains('Nice one! Your environment is ready for passbolt.', $data);
-        $this->assertContains('Environment is configured correctly.', $data);
-        $this->assertContains('GPG is configured correctly.', $data);
-        $this->assertContains('install/database" class="button primary next big">Start configuration', $data);
+        $this->assertContains('Create a new GPG key for your server', $data);
     }
 
-    public function testViewSuccess_LicensePluginEnabled()
+    public function testPostSuccess()
     {
-        Configure::write('passbolt.plugins.license', ['version' => '2.0.0']);
-        $this->get('/install');
+        $postData = [
+            'name' => 'Aurore Avarguès-Weber',
+            'email' => 'aurore@passbolt.com',
+            'comment' => 'Bees are everything'
+        ];
+        $this->post('/install/gpg_key', $postData);
+        $this->assertResponseCode(302);
+        $this->assertRedirectContains('install/email');
+        $this->assertSession($postData, 'webinstaller.gpg');
+    }
+
+    public function testPostError_InvalidData()
+    {
+        $postData = [
+            'name' => 'Aurore Avarguès-Weber',
+            'email' => 'invalid-email',
+            'comment' => 'Bees are everything'
+        ];
+        $this->post('/install/gpg_key', $postData);
         $data = ($this->_getBodyAsString());
         $this->assertResponseOk();
-        $this->assertContains('2. Subscription key', $data);
-        $this->assertContains('install/license_key" class="button primary next big">Start configuration', $data);
+        $this->assertContains('The data entered are not correct', $data);
     }
 }

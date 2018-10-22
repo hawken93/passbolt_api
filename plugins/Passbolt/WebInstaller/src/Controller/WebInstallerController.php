@@ -14,11 +14,10 @@
  */
 namespace Passbolt\WebInstaller\Controller;
 
-use App\Controller\AppController;
 use Cake\Controller\Controller;
 use Cake\Core\Configure;
 use Cake\Event\Event;
-use Cake\Network\Exception\ForbiddenException;
+use Passbolt\WebInstaller\Utility\WebInstaller;
 
 /**
  * Class WebInstallerController
@@ -31,15 +30,9 @@ class WebInstallerController extends Controller
     public $components = ['Flash'];
 
     /**
-     * Configuration key.
-     * This is where the temporary config information will be stored in the session.
+     * The web installer model
      */
-    const CONFIG_KEY = 'Passbolt.Config';
-
-    /**
-     * The database connection name used by the webinstaller
-     */
-    const CONNECTION_NAME = 'webinstaller';
+    protected $webInstaller;
 
     /**
      * Step information. Will be set by each controller.
@@ -60,6 +53,8 @@ class WebInstallerController extends Controller
     {
         parent::initialize();
         $this->stepInfo['current'] = $this->request->getRequestTarget();
+        $session = $this->request->getSession();
+        $this->webInstaller = new WebInstaller($session);
     }
 
     /**
@@ -72,20 +67,10 @@ class WebInstallerController extends Controller
     public function beforeFilter(Event $event)
     {
         parent::beforeFilter($event);
-
-        $session = $this->request->getSession();
-        $config = $session->read(self::CONFIG_KEY);
-
-        if ($config === null) {
-            $session->write(self::CONFIG_KEY, []);
-
-            // Redirect to start page if not already there.
-            $isStartPage = $this->request->controller == 'SystemCheck' && $this->request->action == 'index';
-            if (!$isStartPage) {
-                $this->Flash->error(__('The session has expired. Please start the configuration again.'));
-
-                return $this->redirect('install');
-            }
+        $onStartPage = $this->request->controller == 'SystemCheck' && $this->request->action == 'index';
+        if (!$this->webInstaller->isInitialized() && !$onStartPage) {
+            $this->Flash->error(__('The session has expired. Please start the configuration again.'));
+            return $this->redirect('install');
         }
     }
 
@@ -98,18 +83,17 @@ class WebInstallerController extends Controller
     {
         parent::beforeRender($event);
         $this->set('stepInfo', $this->stepInfo);
-        $this->set('navigationSections', $this->_getNavigationSections());
+        $this->set('navigationSections', $this->getNavigationSections());
     }
 
     /**
      * Return the navigation items.
      * @return array
      */
-    protected function _getNavigationSections()
+    protected function getNavigationSections()
     {
-        $session = $this->request->getSession();
         $pluginLicenseEnabled = !empty(Configure::read('passbolt.plugins.license'));
-        $hasAdmin = $session->read('Passbolt.Config.hasExistingAdmin');
+        $hasAdmin = $this->webInstaller->getSettings('hasAdmin');
         $sections = [];
 
         $sections['system_check'] = __('System check');
@@ -130,42 +114,6 @@ class WebInstallerController extends Controller
     }
 
     /**
-     * Save data in session for the corresponding key.
-     * @param string $key configuration key
-     * @param array $data data to be saved
-     * @return void
-     */
-    protected function _saveConfiguration($key, $data)
-    {
-        $session = $this->request->getSession();
-        $session->write(self::CONFIG_KEY . '.' . $key, $data);
-    }
-
-    /**
-     * Get session saved configuration for the corresponding key.
-     * @param string $key configuration key
-     * @return mixed
-     */
-    protected function _getSavedConfiguration($key)
-    {
-        $session = $this->request->getSession();
-        return $session->read(self::CONFIG_KEY . '.' . $key);
-    }
-
-    /**
-     * Load a previously saved configuration. (in session).
-     * @param string $key configuration key
-     * @return void
-     */
-    protected function _loadSavedConfiguration($key)
-    {
-        $savedConfiguration = $this->_getSavedConfiguration($key);
-        if (!empty($savedConfiguration)) {
-            $this->request->data = $savedConfiguration;
-        }
-    }
-
-    /**
      * Error handler.
      * @param string $message error message
      * @return void
@@ -180,7 +128,7 @@ class WebInstallerController extends Controller
      * Success handler.
      * @return void
      */
-    protected function _success()
+    protected function goToNextStep()
     {
         $this->redirect($this->stepInfo['next']);
     }

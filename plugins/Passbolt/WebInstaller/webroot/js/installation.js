@@ -1,4 +1,6 @@
 $(function () {
+  const bases = document.getElementsByTagName('base');
+  const baseUrl = bases[0] ? bases[0].href : '/';
   const details = [
     'Installing database',
     'Validating GPG keys',
@@ -16,7 +18,8 @@ $(function () {
   /**
    * Display status.
    */
-  function displayStatus(i) {
+  function rollStatus(i) {
+    i = i != undefined ? i : 0;
     $('.install-details').text(details[i % details.length]);
     displayStatusTimeout = setTimeout(() => {
       i++;
@@ -28,8 +31,8 @@ $(function () {
    * Request the API to install passbolt
    */
   async function install() {
-    displayStatus(0);
-    const installUrl = $('#install-url').val() + '.json';
+    rollStatus();
+    const installUrl = `${baseUrl}install/installation/do_install.json`;
     const response = await fetch(installUrl);
     clearTimeout(displayStatusTimeout);
     const json = await response.json();
@@ -45,11 +48,9 @@ $(function () {
    * @param response
    */
   function handleInstallSuccess(response) {
-    const bases = document.getElementsByTagName('base');
-    const baseUrl = bases[0] ? bases[0].href : '/';
     let redirectUrl = baseUrl;
-    if (response.token) {
-      redirectUrl = `${baseUrl}setup/install/${response.token.user_id}/${response.token.token}`;
+    if (response.user_id) {
+      redirectUrl = `${baseUrl}setup/install/${response.user_id}/${response.token}`;
     }
 
     $('li.selected').removeClass('selected');

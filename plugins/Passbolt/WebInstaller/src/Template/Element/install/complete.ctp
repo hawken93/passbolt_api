@@ -5,7 +5,7 @@
             <div class="message success">
                 <strong><i class="fa fa-check-circle"></i> <?= __('Success!') ?></strong>
                 <?= __('You have completed successfully the configuration procedure, congrats!') ?>
-                <?php if ($firstUserCreated) : ?>
+                <?php if ($createFirstUser) : ?>
                 <?= __('You will soon be redirected to passbolt to complete your account setup.') ?>
                 <?php else: ?>
                 <?= __('You will soon be redirected to the login page.') ?>

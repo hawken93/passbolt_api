@@ -14,15 +14,14 @@
  */
 namespace Passbolt\WebInstaller\Controller;
 
-use App\Model\Entity\AuthenticationToken;
 use App\Model\Entity\Role;
-use Cake\Network\Exception\ForbiddenException;
+use App\Utility\UuidFactory;
+use Cake\Core\Configure;
+use Cake\Core\Exception\Exception;
+use Passbolt\WebInstaller\Utility\DatabaseConfiguration;
 
 class AccountCreationController extends WebInstallerController
 {
-
-    const MY_CONFIG_KEY = 'first_user';
-
     /**
      * Initialize.
      * @return void
@@ -40,14 +39,51 @@ class AccountCreationController extends WebInstallerController
      */
     public function index()
     {
-        $data = $this->request->getData();
-        if (!empty($data)) {
-            $this->_saveConfiguration(SELF::MY_CONFIG_KEY, $data);
-            return $this->_success();
+        if ($this->request->is('post')) {
+            return $this->indexPost();
         }
 
+        $this->set('user', null);
         $this->render('Pages/account_creation');
     }
 
+    /**
+     * Index post
+     */
+    protected function indexPost()
+    {
+        $data = $this->request->getData();
+        $this->webInstaller->setSettingsAndSave('first_user', $data);
 
+        try {
+            $data = $this->validateData($data);
+        } catch (Exception $e) {
+            return $this->_error($e->getMessage());
+        }
+
+        $this->goToNextStep();
+    }
+
+    /**
+     * Get and validate the posted data.
+     * @param array $data The posted data
+     * @throws Exception If the user is not valid
+     * @return array
+     */
+    protected function validateData($data)
+    {
+        // Set the default database configuration, so the models loaded after can be used on it.
+        $this->webInstaller->initDatabaseConnection();
+        $this->loadModel('Users');
+
+        $data['role_id'] = UuidFactory::uuid(); // Temporary role id
+        $user = $this->Users->buildEntity($data);
+        $this->set('user', $user);
+        $errors = $user->getErrors();
+        if (!empty($errors)) {
+            throw new Exception(__('The data entered are not correct'));
+        }
+
+        return $data;
+    }
 }

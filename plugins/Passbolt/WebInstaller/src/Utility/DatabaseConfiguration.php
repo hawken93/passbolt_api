@@ -10,18 +10,16 @@
  * @copyright     Copyright (c) Passbolt SARL (https://www.passbolt.com)
  * @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
  * @link          https://www.passbolt.com Passbolt(tm)
- * @since         2.0.0
+ * @since         2.5.0
  */
 namespace Passbolt\WebInstaller\Utility;
 
-use App\Model\Entity\Role;
 use App\Utility\Healthchecks;
 use Cake\Core\Exception\Exception;
 use Cake\Datasource\ConnectionManager;
-use Cake\ORM\TableRegistry;
 use Cake\Utility\Hash;
 
-class DatabaseConnection {
+class DatabaseConfiguration {
 
     /**
      * Build a database configuration
@@ -45,58 +43,71 @@ class DatabaseConnection {
     }
 
     /**
-     * Test database connection.
-     * @param string $name The connection name
-     * @throws Exception when a connection cannot be established
+     * Set the default database config
+     * @param array $config The config to set
      * @return void
      */
-    public static function testConnection($name)
+    public static function setDefaultConfig($config)
     {
-        $connection = ConnectionManager::get($name);
-        try {
-            $connection->execute('SHOW TABLES')->fetchAll('assoc');
-        } catch (\PDOException $e) {
-            throw new Exception(__('A connection could not be established with the credentials provided. Please verify the settings.'));
-        }
+        $defaultConfigName = self::getDefaultConfigName();
+        ConnectionManager::drop($defaultConfigName);
+        $dbConfig = self::buildConfig($config);
+        ConnectionManager::setConfig($defaultConfigName, $dbConfig);
     }
 
     /**
-     * Check that the passbolt database has at least one admin user.
-     * @param string $name The connection name
-     * @throws Exception when the database schema is not the right one
-     * @return int number of admin users
+     * Test database connection.
+     * @throws Exception when a connection cannot be established
+     * @return void
      */
-    public static function checkDbHasAdmin($name)
+    public static function testConnection()
     {
-        $connection = ConnectionManager::get($name);
+        $defaultConfigName = self::getDefaultConfigName();
+        $connection = ConnectionManager::get($defaultConfigName);
 
-        // Check if database is populated with tables.
-        $tables = $connection->execute('SHOW TABLES')->fetchAll();
-        $tables = Hash::extract($tables, '{n}.0');
-
-        if (count($tables) == 0) {
-            return 0;
+        try {
+            $connection->execute('SHOW TABLES')->fetchAll('assoc');
+        } catch (\PDOException $e) {
+            return false;
         }
 
-        // Database already exist, check whether the schema is valid, and how many admins are there.
-        $expected = Healthchecks::getSchemaTables(1);
-        foreach ($expected as $expectedTableName) {
-            if (!in_array($expectedTableName, $tables)) {
+        return true;
+    }
+
+    /**
+     * Get the default configuration name.
+     * @return string "test" if the tests are executed, "default" otherwise.
+     */
+    public static function getDefaultConfigName()
+    {
+        return defined('TEST_IS_RUNNING') && TEST_IS_RUNNING ? 'test' : 'default';
+    }
+
+    /**
+     * Get the database tables names
+     * @return array
+     */
+    public static function getTables()
+    {
+        $defaultConfigName = self::getDefaultConfigName();
+        $connection = ConnectionManager::get($defaultConfigName);
+        $tables = $connection->execute('SHOW TABLES')->fetchAll();
+        return Hash::extract($tables, '{n}.0');
+    }
+
+    /**
+     * Validate the database schema.
+     * @throws Exception If the database schema does not validate
+     * @return void
+     */
+    public static function validateSchema()
+    {
+        $tables = self::getTables();
+        $expectedTables = Healthchecks::getSchemaTables(1);
+        foreach ($expectedTables as $expectedTable) {
+            if (!in_array($expectedTable, $tables)) {
                 throw new Exception(__('The database schema does not match the one expected'));
             }
         }
-
-        $roles = TableRegistry::get('Roles');
-        $roles->setConnection($connection);
-
-        $users = TableRegistry::get('Users');
-        $users->setConnection($connection);
-
-        $roleId = $roles->getIdByName(Role::ADMIN);
-        $nbAdmins = $users->find()
-            ->where(['role_id' => $roleId])
-            ->count();
-
-        return $nbAdmins;
     }
 }

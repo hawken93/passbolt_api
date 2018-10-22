@@ -95,7 +95,7 @@ try {
 /*
  * Define if passbolt is configured.
  */
-if (!defined('TEST_IS_RUNNING')) {
+if (!defined('TEST_IS_RUNNING') && file_exists(PLUGINS . DS . 'Passbolt' . DS . 'WebInstaller')) {
     define('PASSBOLT_IS_CONFIGURED', WebInstallerMiddleware::isConfigured());
 }
 

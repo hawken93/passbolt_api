@@ -10,22 +10,24 @@
  * @copyright     Copyright (c) Passbolt SARL (https://www.passbolt.com)
  * @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
  * @link          https://www.passbolt.com Passbolt(tm)
- * @since         2.0.0
+ * @since         2.5.0
  */
 namespace Passbolt\WebInstaller\Test\TestCase\Middleware;
 
-use App\Test\Lib\AppIntegrationTestCase;
 use Cake\Core\Configure;
-use Passbolt\WebInstaller\Test\Lib\MockBootstrap;
+use Passbolt\WebInstaller\Test\Lib\WebInstallerBootstrap;
+use Passbolt\WebInstaller\Test\Lib\WebInstallerIntegrationTestCase;
 
-class WebInstallerMiddlewareTest extends AppIntegrationTestCase
+class WebInstallerMiddlewareTest extends WebInstallerIntegrationTestCase
 {
+    // Override the following phpunit variables in order to isolate the tests.
+    // It will allow the tests to work on the same constants, here PASSBOLT_IS_CONFIGURED
     protected $preserveGlobalState = FALSE;
     protected $runTestInSeparateProcess = TRUE;
 
     public function testNotConfigured_GoToInstall_Success()
     {
-        MockBootstrap::mockPassboltIsNotconfigured();
+        $this->mockPassboltIsNotconfigured();
         $this->get('/install');
         $data = ($this->_getBodyAsString());
         $this->assertResponseOk();
@@ -34,7 +36,7 @@ class WebInstallerMiddlewareTest extends AppIntegrationTestCase
 
     public function testNotConfigured_RedirectAllToInstall_Success()
     {
-        MockBootstrap::mockPassboltIsNotconfigured();
+        $this->mockPassboltIsNotconfigured();
         $uris = ['/', 'auth/login', 'resources.json', 'users/recover'];
         foreach ($uris as $uri) {
             $this->get($uri);
@@ -45,7 +47,7 @@ class WebInstallerMiddlewareTest extends AppIntegrationTestCase
 
     public function testAlreadyConfigured_GoToInstall_Error()
     {
-        MockBootstrap::mockPassboltIsconfigured();
+        $this->mockPassboltIsconfigured();
         $this->get('/install');
         $this->assertResponseCode(404);
     }
