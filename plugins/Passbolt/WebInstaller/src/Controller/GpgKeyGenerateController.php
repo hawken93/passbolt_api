@@ -35,7 +35,7 @@ class GpgKeyGenerateController extends WebInstallerController
 
     /**
      * Index
-     * @return void
+     * @return void|mixed
      */
     public function index()
     {
@@ -49,6 +49,7 @@ class GpgKeyGenerateController extends WebInstallerController
 
     /**
      * Index post
+     * @return void|mixed
      */
     protected function indexPost()
     {

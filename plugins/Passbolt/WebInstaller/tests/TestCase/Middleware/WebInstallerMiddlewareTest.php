@@ -22,8 +22,8 @@ class WebInstallerMiddlewareTest extends WebInstallerIntegrationTestCase
 {
     // Override the following phpunit variables in order to isolate the tests.
     // It will allow the tests to work on the same constants, here PASSBOLT_IS_CONFIGURED
-    protected $preserveGlobalState = FALSE;
-    protected $runTestInSeparateProcess = TRUE;
+    protected $preserveGlobalState = false;
+    protected $runTestInSeparateProcess = true;
 
     public function testNotConfigured_GoToInstall_Success()
     {

@@ -31,7 +31,9 @@ class InstallationControllerTest extends WebInstallerIntegrationTestCase
         parent::setUp();
         $this->mockPassboltIsNotconfigured();
         $this->initWebInstallerSession();
-        $this->copyPassboltConfig = @file_get_contents(CONFIG . 'passbolt.php');
+        if (file_exists(CONFIG . 'passbolt.php')) {
+            $this->passboltConfigOriginal = file_get_contents(CONFIG . 'passbolt.php');
+        }
     }
 
     public function tearDown()
@@ -40,7 +42,9 @@ class InstallationControllerTest extends WebInstallerIntegrationTestCase
         if (!empty($this->copyPassboltConfig)) {
             file_put_contents(CONFIG . 'passbolt.php', $this->copyPassboltConfig);
         }
-        @unlink(CONFIG . 'license');
+        if (file_exists(CONFIG . 'license')) {
+            unlink(CONFIG . 'license');
+        }
     }
 
     public function testViewSuccess()
@@ -54,6 +58,7 @@ class InstallationControllerTest extends WebInstallerIntegrationTestCase
     protected function getInstallSessionData()
     {
         $datasourceTest = Configure::read('Testing.Datasources.test');
+
         return [
             'initialized' => true,
             'hasExistingAdmin' => false,

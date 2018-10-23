@@ -27,7 +27,6 @@ class SystemCheckController extends WebInstallerController
      */
     public function index()
     {
-
         $checks = Healthchecks::environment();
         $gpgChecks = Healthchecks::gpg();
         $webInstallerCheck = WebInstallerHealthchecks::all();

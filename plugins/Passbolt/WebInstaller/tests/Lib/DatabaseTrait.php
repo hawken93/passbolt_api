@@ -18,7 +18,8 @@ use Cake\Core\Configure;
 use Cake\Datasource\ConnectionManager;
 use Passbolt\WebInstaller\Utility\DatabaseConfiguration;
 
-Trait DatabaseTrait {
+trait DatabaseTrait
+{
 
     /**
      * Truncate the database tables.

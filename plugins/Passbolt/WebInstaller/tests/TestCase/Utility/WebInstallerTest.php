@@ -36,7 +36,9 @@ class WebInstallerTest extends TestCase
     public function setUp()
     {
         parent::setUp();
-        $this->passboltConfigOriginal = @file_get_contents(CONFIG . 'passbolt.php');
+        if (file_exists(CONFIG . 'passbolt.php')) {
+            $this->passboltConfigOriginal = file_get_contents(CONFIG . 'passbolt.php');
+        }
         Plugin::load('Passbolt/WebInstaller', ['bootstrap' => true, 'routes' => true]);
     }
 
@@ -65,7 +67,6 @@ class WebInstallerTest extends TestCase
     public function testInitDatabaseConnectionError()
     {
         $this->markTestIncomplete('Cannot be tested, the PDO Exception is not caught by the DatabaseConfiguration::testConnection function when executed in a testsuite. Isolating the tests make it working but break other tests such as the GpgGenerateKey tests.');
-        return;
         $webInstaller = new WebInstaller(null);
         $databaseSettings = Configure::read('Testing.Datasources.test');
         $databaseSettings['host'] = 'invalid-host';

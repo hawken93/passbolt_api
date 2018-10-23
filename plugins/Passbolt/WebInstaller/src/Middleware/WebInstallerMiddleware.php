@@ -36,7 +36,7 @@ class WebInstallerMiddleware
             return $response
                 ->withStatus(302)
                 ->withLocation('/install');
-        } else if (PASSBOLT_IS_CONFIGURED && $targetInstallPage) {
+        } elseif (PASSBOLT_IS_CONFIGURED && $targetInstallPage) {
             return $response
                 ->withStatus(302)
                 ->withLocation('/');

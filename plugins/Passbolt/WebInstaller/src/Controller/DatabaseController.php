@@ -41,7 +41,7 @@ class DatabaseController extends WebInstallerController
 
     /**
      * Index
-     * @return void
+     * @return void|mixed
      */
     public function index()
     {
@@ -51,7 +51,7 @@ class DatabaseController extends WebInstallerController
 
         $databaseSettings = $this->webInstaller->getSettings('database');
         if (!empty($databaseSettings)) {
-            foreach($databaseSettings as $key => $databaseSetting) {
+            foreach ($databaseSettings as $key => $databaseSetting) {
                 $this->request = $this->request->withData($key, $databaseSetting);
             }
         }
@@ -62,6 +62,7 @@ class DatabaseController extends WebInstallerController
 
     /**
      * Index post
+     * @return void|mixed
      */
     protected function indexPost()
     {

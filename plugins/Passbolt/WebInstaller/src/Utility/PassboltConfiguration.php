@@ -17,22 +17,25 @@ namespace Passbolt\WebInstaller\Utility;
 use App\Utility\Healthchecks;
 use Cake\View\ViewVarsTrait;
 
-class PassboltConfiguration {
+class PassboltConfiguration
+{
 
     use ViewVarsTrait;
 
     /**
      * Render the passbolt configuration file.
+     * @param array $settings The webinstaller settings.
      * @return string
      */
-    public function render($settings) {
+    public function render($settings)
+    {
         $this->viewBuilder();
         $settings = $this->sanitize($settings);
         $this->set(['config' => $settings]);
         $configView = $this->createView();
         $contents = $configView->render('Passbolt/WebInstaller.Config/passbolt', 'ajax');
 
-        return  "<?php\n$contents";
+        return "<?php\n$contents";
     }
 
     /**
@@ -47,6 +50,7 @@ class PassboltConfiguration {
             if (is_string($settings)) {
                 return addslashes($settings);
             }
+
             return $settings;
         }
 

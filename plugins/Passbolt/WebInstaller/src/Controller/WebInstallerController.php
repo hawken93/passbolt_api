@@ -70,6 +70,7 @@ class WebInstallerController extends Controller
         $onStartPage = $this->request->controller == 'SystemCheck' && $this->request->action == 'index';
         if (!$this->webInstaller->isInitialized() && !$onStartPage) {
             $this->Flash->error(__('The session has expired. Please start the configuration again.'));
+
             return $this->redirect('install');
         }
     }

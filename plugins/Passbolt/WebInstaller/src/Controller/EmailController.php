@@ -53,8 +53,7 @@ class EmailController extends WebInstallerController
 
     /**
      * Index
-     * @return mixed
-     * @return void
+     * @return void|mixed
      */
     public function index()
     {
@@ -64,7 +63,7 @@ class EmailController extends WebInstallerController
 
         $databaseSettings = $this->webInstaller->getSettings('email');
         if (!empty($databaseSettings)) {
-            foreach($databaseSettings as $key => $databaseSetting) {
+            foreach ($databaseSettings as $key => $databaseSetting) {
                 $this->request = $this->request->withData($key, $databaseSetting);
             }
         }
@@ -75,7 +74,7 @@ class EmailController extends WebInstallerController
 
     /**
      * Index post
-     * @return void
+     * @return void|mixed
      */
     protected function indexPost()
     {

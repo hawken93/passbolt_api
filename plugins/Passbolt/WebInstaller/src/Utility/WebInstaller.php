@@ -19,6 +19,7 @@ use App\Model\Entity\AuthenticationToken;
 use App\Model\Entity\Role;
 use App\Utility\Gpg as AppGpg;
 use Cake\Core\Configure;
+use Cake\Network\Session;
 use Cake\ORM\TableRegistry;
 use Cake\Utility\Hash;
 use Migrations\Migrations;
@@ -30,7 +31,12 @@ class WebInstaller
     public $createdUser = null;
     public $createdUserToken = null;
 
-    public function __construct($session = null) {
+    /**
+     * WebInstaller constructor.
+     * @param Session $session The session to initialize the web installer on.
+     */
+    public function __construct($session = null)
+    {
         $this->session = $session;
         if (!is_null($session)) {
             $sessionSettings = $session->read('webinstaller');
@@ -40,29 +46,62 @@ class WebInstaller
         }
     }
 
+    /**
+     * Check if the web installer has been initialized already.
+     * @return bool
+     */
     public function isInitialized()
     {
         return $this->getSettings('initialized');
     }
 
-    public function getSettings($key) {
+    /**
+     * Get a setting.
+     * @param string $key The setting value
+     * @return mixed
+     */
+    public function getSettings($key)
+    {
         return Hash::get($this->settings, $key);
     }
 
-    public function setSettings($key, $value) {
+    /**
+     * Set a setting.
+     * @param string $key The setting key.
+     * @param string $value The setting value.
+     * @return void
+     */
+    public function setSettings($key, $value)
+    {
         $this->settings[$key] = $value;
     }
 
-    public function saveSettings() {
+    /**
+     * Store the settings in session.
+     * @return void
+     */
+    public function saveSettings()
+    {
         $this->session->write('webinstaller', $this->settings);
     }
 
+    /**
+     * Set a setting and store the settings in session.
+     * @param string $key The setting key.
+     * @param string $value The setting value.
+     * @return void
+     */
     public function setSettingsAndSave($key, $value)
     {
         $this->setSettings($key, $value);
         $this->saveSettings();
     }
 
+    /**
+     * Install passbolt.
+     * @throws Exception
+     * @return void
+     */
     public function install()
     {
         $this->initDatabaseConnection();
@@ -77,6 +116,7 @@ class WebInstaller
 
     /**
      * Initialize the database connection.
+     * @return void
      */
     public function initDatabaseConnection()
     {
@@ -86,6 +126,7 @@ class WebInstaller
 
     /**
      * Generate the gpg key
+     * @return void
      */
     public function generateGpgKey()
     {
@@ -108,6 +149,7 @@ class WebInstaller
     /**
      * Import the server gpg key into the gpg keyring.
      * Generate it if information provided.
+     * @return void
      */
     public function importGpgKey()
     {
@@ -155,7 +197,7 @@ class WebInstaller
     /**
      * Install database.
      * @throws Exception The database cannot be installed
-     * @return mixed
+     * @return void
      */
     public function installDatabase()
     {
@@ -169,6 +211,7 @@ class WebInstaller
     /**
      * Create the first user.
      * @throws CustomValidationException There was a problem creating the first user
+     * @throws CustomValidationException There was a problem creating the first user register token
      * @return void
      */
     public function createFirstUser()

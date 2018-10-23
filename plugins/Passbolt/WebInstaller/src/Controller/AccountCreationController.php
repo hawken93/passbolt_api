@@ -35,7 +35,7 @@ class AccountCreationController extends WebInstallerController
 
     /**
      * Index
-     * @return mixed
+     * @return void|mixed
      */
     public function index()
     {
@@ -49,6 +49,7 @@ class AccountCreationController extends WebInstallerController
 
     /**
      * Index post
+     * @return void|mixed
      */
     protected function indexPost()
     {
@@ -56,7 +57,7 @@ class AccountCreationController extends WebInstallerController
         $this->webInstaller->setSettingsAndSave('first_user', $data);
 
         try {
-            $data = $this->validateData($data);
+            $this->validateData($data);
         } catch (Exception $e) {
             return $this->_error($e->getMessage());
         }

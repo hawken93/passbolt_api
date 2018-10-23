@@ -34,7 +34,7 @@ class OptionController extends WebInstallerController
 
     /**
      * Index
-     * @return void
+     * @return void|mixed
      */
     public function index()
     {
@@ -46,7 +46,7 @@ class OptionController extends WebInstallerController
         $this->request = $this->request->withData('full_base_url', $fullBaseUrl);
         $optionSettings = $this->webInstaller->getSettings('options');
         if (!empty($optionSettings)) {
-            foreach($optionSettings as $key => $optionSetting) {
+            foreach ($optionSettings as $key => $optionSetting) {
                 $this->request = $this->request->withData($key, $optionSetting);
             }
         }
@@ -57,7 +57,7 @@ class OptionController extends WebInstallerController
 
     /**
      * Index post
-     * @return void
+     * @return void|mixed
      */
     protected function indexPost()
     {

@@ -63,5 +63,4 @@ class WebInstallerHealthchecks
 
         return $checks;
     }
-
 }

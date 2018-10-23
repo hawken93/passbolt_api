@@ -13,6 +13,7 @@
  * @since         2.0.0
  */
 namespace Passbolt\WebInstaller\View\Helper;
+
 use Cake\Core\Configure;
 
 /**

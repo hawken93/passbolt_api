@@ -18,7 +18,8 @@ use Cake\Core\Configure;
 use Cake\Core\Exception\Exception;
 use Cake\Utility\Hash;
 
-class Gpg {
+class Gpg
+{
     /**
      * Generate a key pair using system GPG binary V1.
      * @param array $keyData key data as provided by form

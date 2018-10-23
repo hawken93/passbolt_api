@@ -34,7 +34,7 @@ class EmailControllerTest extends WebInstallerIntegrationTestCase
         $this->assertResponseOk();
         $this->assertContains('Email configuration', $data);
     }
-    
+
     public function testPostSuccess()
     {
         $postData = [

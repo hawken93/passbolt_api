@@ -1,7 +1,7 @@
 $(function () {
-  const bases = document.getElementsByTagName('base');
-  const baseUrl = bases[0] ? bases[0].href : '/';
-  const details = [
+    const bases = document.getElementsByTagName('base');
+    const baseUrl = bases[0] ? bases[0].href : '/';
+    const details = [
     'Installing database',
     'Validating GPG keys',
     'Setting up keys',
@@ -12,72 +12,76 @@ $(function () {
     'Writing configuration file',
     'Brewing pale ale',
     'Checking status'
-  ];
-  let displayStatusTimeout;
+    ];
+    let displayStatusTimeout;
 
   /**
    * Display status.
    */
-  function rollStatus(i) {
-    i = i != undefined ? i : 0;
-    $('.install-details').text(details[i % details.length]);
-    displayStatusTimeout = setTimeout(() => {
-      i++;
-      displayStatus(i);
-    }, 1000);
-  }
+    function rollStatus(i)
+    {
+        i = i != undefined ? i : 0;
+        $('.install-details').text(details[i % details.length]);
+        displayStatusTimeout = setTimeout(() => {
+            i++;
+            displayStatus(i);
+        }, 1000);
+    }
 
   /**
    * Request the API to install passbolt
    */
-  async function install() {
-    rollStatus();
-    const installUrl = `${baseUrl}install/installation/do_install.json`;
-    const response = await fetch(installUrl);
-    clearTimeout(displayStatusTimeout);
-    const json = await response.json();
-    if (response.ok) {
-      handleInstallSuccess(json);
-    } else {
-      handleInstallError(json);
+    async function install()
+    {
+        rollStatus();
+        const installUrl = `${baseUrl}install / installation / do_install.json`;
+        const response = await fetch(installUrl);
+        clearTimeout(displayStatusTimeout);
+        const json = await response.json();
+        if (response.ok) {
+            handleInstallSuccess(json);
+        } else {
+            handleInstallError(json);
+        }
     }
-  }
 
   /**
    * Handle install success response
    * @param response
    */
-  function handleInstallSuccess(response) {
-    let redirectUrl = baseUrl;
-    if (response.user_id) {
-      redirectUrl = `${baseUrl}setup/install/${response.user_id}/${response.token}`;
+    function handleInstallSuccess(response)
+    {
+        let redirectUrl = baseUrl;
+        if (response.user_id) {
+            redirectUrl = `${baseUrl}setup / install / ${response.user_id} / ${response.token}`;
+        }
+
+        $('li.selected').removeClass('selected');
+        $('li.disabled').removeClass('disabled').addClass('selected');
+        $('#js_step_title').text('You\'ve made it!');
+        $('#js-install-installing').hide();
+        $('#js-install-complete').show();
+        $('#js-install-complete-redirect').attr('href', redirectUrl);
+
+        setTimeout(function () {
+            document.location.href = redirectUrl;
+        }, 5000);
     }
-
-    $('li.selected').removeClass('selected');
-    $('li.disabled').removeClass('disabled').addClass('selected');
-    $('#js_step_title').text('You\'ve made it!');
-    $('#js-install-installing').hide();
-    $('#js-install-complete').show();
-    $('#js-install-complete-redirect').attr('href', redirectUrl);
-
-    setTimeout(function () {
-      document.location.href = redirectUrl;
-    }, 5000);
-  }
 
   /**
    * Handle install error response
    * @param response
    */
-  function handleInstallError(response) {
-    $('#js_step_title').text('Oops something went wrong!');
-    $('#js-install-installing').hide();
-    $('#js-install-error').show();
-    $('#js-install-error-message').text(response.header.message);
-    $('#js-install-error-message').text(response.header.message);
-    $('#js-install-error-details').text(JSON.stringify(response.body, null, 2));
-    $('#js-show-debug-info').on('click', () => $('#js-install-error-details').toggle())
-  }
+    function handleInstallError(response)
+    {
+        $('#js_step_title').text('Oops something went wrong!');
+        $('#js-install-installing').hide();
+        $('#js-install-error').show();
+        $('#js-install-error-message').text(response.header.message);
+        $('#js-install-error-message').text(response.header.message);
+        $('#js-install-error-details').text(JSON.stringify(response.body, null, 2));
+        $('#js-show-debug-info').on('click', () => $('#js-install-error-details').toggle())
+    }
 
-  install();
+    install();
 });

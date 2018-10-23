@@ -19,7 +19,8 @@ use Cake\Core\Exception\Exception;
 use Cake\Datasource\ConnectionManager;
 use Cake\Utility\Hash;
 
-class DatabaseConfiguration {
+class DatabaseConfiguration
+{
 
     /**
      * Build a database configuration
@@ -58,7 +59,7 @@ class DatabaseConfiguration {
     /**
      * Test database connection.
      * @throws Exception when a connection cannot be established
-     * @return void
+     * @return bool
      */
     public static function testConnection()
     {
@@ -92,6 +93,7 @@ class DatabaseConfiguration {
         $defaultConfigName = self::getDefaultConfigName();
         $connection = ConnectionManager::get($defaultConfigName);
         $tables = $connection->execute('SHOW TABLES')->fetchAll();
+
         return Hash::extract($tables, '{n}.0');
     }
 
