@@ -85,7 +85,7 @@ class GpgKeyImportControllerTest extends WebInstallerIntegrationTestCase
     public function testPostError_PrivateKeyProtectedWithSecret()
     {
         $postData = [
-            'armored_key' => file_get_contents(PASSBOLT_TEST_DATA_GPGKEY_PATH . DS . 'test-no-expiry-with-secret_private.key')
+            'armored_key' => file_get_contents(PASSBOLT_TEST_DATA_GPGKEY_PATH . DS . 'server_test_no_expiry_with_secret_private.key')
         ];
         $this->post('/install/gpg_key_import', $postData);
         $data = ($this->_getBodyAsString());
