@@ -190,7 +190,7 @@ class WebInstaller
         if (!Configure::read('passbolt.plugins.license')) {
             return;
         }
-        $license = $this->webInstaller->getSettings('license');
+        $license = $this->getSettings('license');
         file_put_contents(CONFIG . 'license', $license);
     }
 

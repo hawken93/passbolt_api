@@ -24,7 +24,7 @@ use Passbolt\WebInstaller\Test\Lib\WebInstallerIntegrationTestCase;
 class InstallationControllerTest extends WebInstallerIntegrationTestCase
 {
     // Keep a copy of the passbolt config, to rollback after each test.
-    private $copyPassboltConfig = null;
+    private $passboltConfigOriginal = null;
 
     public function setUp()
     {
@@ -39,8 +39,8 @@ class InstallationControllerTest extends WebInstallerIntegrationTestCase
     public function tearDown()
     {
         parent::tearDown();
-        if (!empty($this->copyPassboltConfig)) {
-            file_put_contents(CONFIG . 'passbolt.php', $this->copyPassboltConfig);
+        if (!empty($this->passboltConfigOriginal)) {
+            file_put_contents(CONFIG . 'passbolt.php', $this->passboltConfigOriginal);
         }
         if (file_exists(CONFIG . 'license')) {
             unlink(CONFIG . 'license');
@@ -58,8 +58,7 @@ class InstallationControllerTest extends WebInstallerIntegrationTestCase
     protected function getInstallSessionData()
     {
         $datasourceTest = Configure::read('Testing.Datasources.test');
-
-        return [
+        $data = [
             'initialized' => true,
             'hasExistingAdmin' => false,
             'database' => $datasourceTest,
@@ -92,6 +91,14 @@ class InstallationControllerTest extends WebInstallerIntegrationTestCase
                 'role_id' => '0d6990c8-4aaa-4456-a333-00e803ba0828',
             ]
         ];
+        if (file_exists(PLUGINS . DS . 'Passbolt' . DS . 'License')) {
+            $licenseSettings = [
+                'license_key' => file_get_contents(PLUGINS . DS . 'Passbolt' . DS . 'License' . DS . 'tests' . DS . 'data' . DS . 'license' . DS . 'license_dev')
+            ];
+            $data += $licenseSettings;
+        }
+
+        return $data;
     }
 
     public function testDoInstallSuccess()
@@ -101,6 +108,7 @@ class InstallationControllerTest extends WebInstallerIntegrationTestCase
         $this->initWebInstallerSession($config);
         $this->get('/install/installation/do_install.json');
         $result = json_decode($this->_getBodyAsString(), true);
+
         $this->assertTrue(Validation::uuid($result['user_id']));
         $this->assertTrue(Validation::uuid($result['token']));
     }

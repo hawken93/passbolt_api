@@ -67,6 +67,7 @@ class GpgKeyImportController extends WebInstallerController
     /**
      * Validate data.
      * @param array $data request data
+     * @throws Exception The key is not valid
      * @return void
      */
     protected function validateData($data)
