@@ -86,6 +86,15 @@ class WebInstaller
     }
 
     /**
+     * Flush the settings from the session.
+     * @return void
+     */
+    public function flushSettings()
+    {
+        $this->session->write('webinstaller', []);
+    }
+
+    /**
      * Set a setting and store the settings in session.
      * @param string $key The setting key.
      * @param string $value The setting value.
@@ -112,6 +121,8 @@ class WebInstaller
         $this->writeLicenseFile();
         $this->createFirstUser();
         $this->saveSettings();
+        $this->changeConfigFolderPermission();
+        $this->flushSettings();
     }
 
     /**
@@ -242,5 +253,33 @@ class WebInstaller
             'user_id' => $user->id,
             'token' => $token->token
         ]);
+    }
+
+    /**
+     * Change the config folder permissions.
+     * @return void
+     */
+    public function changeConfigFolderPermission()
+    {
+        if (defined('TEST_IS_RUNNING')) {
+            return;
+        }
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator(CONFIG),
+            \RecursiveIteratorIterator::SELF_FIRST,
+            \RecursiveIteratorIterator::CATCH_GET_CHILD // Don't throw an error if one child cannot be opened
+        );
+        foreach ($iterator as $name => $fileInfo) {
+            if ($fileInfo->getFilename() == '..') {
+                continue;
+            }
+            if (is_writable($name)) {
+                if (is_dir($name)) {
+                    chmod($name, 0550);
+                } else {
+                    chmod($name, 0440);
+                }
+            }
+        }
     }
 }
