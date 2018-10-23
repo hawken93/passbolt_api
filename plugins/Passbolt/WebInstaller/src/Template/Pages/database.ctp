@@ -47,10 +47,9 @@ use Cake\Routing\Router;
                             ]); ?>
 
                             <?= $this->Form->input('password', [
-                                'required' => 'required',
                                 'placeholder' => __('password'),
                                 'label' => __('Password'),
-                                'class' => 'required fluid',
+                                'class' => 'fluid',
                                 'type' => 'password',
                             ]); ?>
 
