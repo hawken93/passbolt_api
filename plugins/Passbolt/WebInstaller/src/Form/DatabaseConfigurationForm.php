@@ -60,6 +60,7 @@ class DatabaseConfigurationForm extends Form
             ->utf8('username', __('The username is not a valid utf8 string.'));
 
         $validator
+            ->allowEmpty('password')
             ->utf8('password', __('The host is not a valid utf8 string.'));
 
         $validator
